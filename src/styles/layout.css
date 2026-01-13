@@ -1,0 +1,42 @@
+.page {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+button {
+  padding: 12px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.split-container {
+  display: flex;
+  gap: 20px;
+}
+
+.left-panel,
+.right-panel {
+  flex: 1;
+  min-width: 300px
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  margin-bottom: 12px;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
