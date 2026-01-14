@@ -1,66 +1,52 @@
 import { useLocation, useNavigate, Link } from 'react-router-dom'
-import { useState } from 'react'
 
 function Results({ score, setScore }) {
   const { state } = useLocation()
   const navigate = useNavigate()
 
-  const { passage, questions, answers } = state
-  const [marked, setMarked] = useState({})
+  const { questions, answers } = state
 
-  function mark(index, isCorrect) {
-    setMarked({
-      ...marked,
-      [index]: isCorrect
-    })
+  function isCorrect(user, correct) {
+    if (!user) return false
+    if (user.length !== correct.length) return false
+    return user.every(a => correct.includes(a))
   }
 
   function finalize() {
-    let correct = 0
-    let incorrect = 0
+    let correctCount = 0
+    let incorrectCount = 0
 
-    Object.values(marked).forEach(v => {
-      if (v) correct++
-      else incorrect++
+    questions.forEach((q, i) => {
+      if (isCorrect(answers[i], q.correctAnswers)) {
+        correctCount++
+      } else {
+        incorrectCount++
+      }
     })
 
     setScore({
-      correct: score.correct + correct,
-      incorrect: score.incorrect + incorrect
+      correct: score.correct + correctCount,
+      incorrect: score.incorrect + incorrectCount
     })
 
     navigate('/')
   }
 
-  const allMarked = Object.keys(marked).length === questions.length
-
   return (
     <div className="page">
-      <Link to="/">
-        <button>Menu</button>
-      </Link>
+      <Link to="/"><button>Menu</button></Link>
 
-      <h2>Passage</h2>
-      <p>{passage}</p>
+      <h2>Results</h2>
 
-      <h2>Your Answers</h2>
-
-      {questions.map((q, index) => (
-        <div key={index} className="result-question">
-          <h4>Question {index + 1}</h4>
-          <p>{q.prompt}</p>
-          <p>
-            <strong>Selected:</strong> {answers[index].join(', ')}
-          </p>
-
-          <button onClick={() => mark(index, true)}>Correct</button>
-          <button onClick={() => mark(index, false)}>Incorrect</button>
+      {questions.map((q, i) => (
+        <div key={i}>
+          <p><strong>Question {i + 1}</strong></p>
+          <p>Your answer: {(answers[i] || []).join(', ')}</p>
+          <p>Correct answer: {q.correctAnswers.join(', ')}</p>
         </div>
       ))}
 
-      <button onClick={finalize} disabled={!allMarked}>
-        Save Results
-      </button>
+      <button onClick={finalize}>Confirm & Save Score</button>
     </div>
   )
 }
