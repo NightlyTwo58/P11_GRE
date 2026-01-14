@@ -1,49 +1,68 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { Link } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { useState } from 'react'
 
-function Results({score, setScore}) {
-    const { state } = useLocation()
-    const navigate = useNavigate()
+function Results({ score, setScore }) {
+  const { state } = useLocation()
+  const navigate = useNavigate()
 
-//     const correctAnswers = ['B', 'D']
-//     function isCorrect(userAnswer, correctAnswers) {
-//       if (userAnswer.length !== correctAnswers.length) return false
-//       return userAnswer.every(a => correctAnswers.includes(a))
-//     }
+  const { passage, questions, answers } = state
+  const [marked, setMarked] = useState({})
 
-    function markCorrect() {
-        setScore({
-            correct: score.correct + 1,
-            incorrect: score.incorrect
-        })
-        navigate('/')
-    }
+  function mark(index, isCorrect) {
+    setMarked({
+      ...marked,
+      [index]: isCorrect
+    })
+  }
 
-    function markIncorrect() {
-        setScore({
-            correct: score.correct,
-            incorrect: score.incorrect + 1
-        })
-        navigate('/')
-    }
+  function finalize() {
+    let correct = 0
+    let incorrect = 0
 
-    return (
-        <div className="page">
-            <Link to="/">
-                <button>Menu</button>
-            </Link>
-            <h2>Your Answer</h2>
-            <p>{state.answer}</p>
+    Object.values(marked).forEach(v => {
+      if (v) correct++
+      else incorrect++
+    })
 
-            <h3>GPT Feedback</h3>
-            <p>(Coming next)</p>
+    setScore({
+      correct: score.correct + correct,
+      incorrect: score.incorrect + incorrect
+    })
 
-            <h3>Was this correct?</h3>
+    navigate('/')
+  }
 
-            <button onClick={markCorrect}>Correct</button>
-            <button onClick={markIncorrect}>Incorrect</button>
+  const allMarked = Object.keys(marked).length === questions.length
+
+  return (
+    <div className="page">
+      <Link to="/">
+        <button>Menu</button>
+      </Link>
+
+      <h2>Passage</h2>
+      <p>{passage}</p>
+
+      <h2>Your Answers</h2>
+
+      {questions.map((q, index) => (
+        <div key={index} className="result-question">
+          <h4>Question {index + 1}</h4>
+          <p>{q.prompt}</p>
+          <p>
+            <strong>Selected:</strong> {answers[index].join(', ')}
+          </p>
+
+          <button onClick={() => mark(index, true)}>Correct</button>
+          <button onClick={() => mark(index, false)}>Incorrect</button>
         </div>
-    )
+      ))}
+
+      <button onClick={finalize} disabled={!allMarked}>
+        Save Results
+      </button>
+    </div>
+  )
 }
 
 export default Results

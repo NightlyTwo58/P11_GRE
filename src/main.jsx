@@ -5,6 +5,8 @@ import App from './App'
 import './index.css'
 import './styles/layout.css'
 
+// npm run dev
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <App />
