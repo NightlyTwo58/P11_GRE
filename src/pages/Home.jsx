@@ -44,6 +44,9 @@ function Home({ score, setScore }) {
       <Link to="/vocab_practice" state={{ numQuestions }}>
         <button>Start Vocab Practice</button>
       </Link>
+      <Link to="/question_bank">
+        <button>Review Previous Questions</button>
+      </Link>
 
       <button onClick={reset} disabled={total === 0}>Reset</button>
     </div>

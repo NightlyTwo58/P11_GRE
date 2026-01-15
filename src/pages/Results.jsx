@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
 
-function Results({ score, setScore }) {
+function Results({ score, setScore, questionBank, setQuestionBank }) {
   const { state } = useLocation()
   const navigate = useNavigate()
 
@@ -33,33 +33,40 @@ function Results({ score, setScore }) {
       incorrect: score.incorrect + incorrectCount
     })
 
+    const enrichedQuestions = questions.map((q, i) => ({
+      id: crypto.randomUUID(),
+      type: passage ? 'reading' : 'vocab',
+      passage: passage || null,
+      prompt: q.prompt,
+      choices: q.choices,
+      correctAnswers: q.correctAnswers,
+      userAnswers: answers[i] || [],
+      explanations: q.explanations || {},
+      timestamp: Date.now()
+    }))
+    setQuestionBank(prev => [...prev, ...enrichedQuestions])
+
     navigate('/')
   }
 
   // On-demand GPT explanation
   async function fetchExplanation(question, selectedChoice) {
     setLoading(true)
-    setCurrentExplanation('') // Clear previous explanation
+    setCurrentExplanation('')
 
-    // You would call your backend endpoint here that interacts with OpenAI
-    // Example payload:
-    /*
-    const response = await fetch('/api/explain', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passage, question, selectedChoice })
-    })
-    const data = await response.json()
-    setCurrentExplanation(data.explanation)
-    */
+    const explanation = `Explanation for choice "${selectedChoice}" of question "${question.prompt}":\nLorem ipsum...`
 
-    // Placeholder for now
-    setTimeout(() => {
-      setCurrentExplanation(
-        `Explanation for choice "${selectedChoice}" of question "${question.prompt}":\nLorem ipsum...`
-      )
-      setLoading(false)
-    }, 500)
+    // update the local questions array immediately
+    const index = questions.indexOf(question)
+    if (index !== -1) {
+      questions[index].explanations = {
+        ...(questions[index].explanations || {}),
+        [selectedChoice]: explanation
+      }
+    }
+
+    setCurrentExplanation(explanation)
+    setLoading(false)
   }
 
   return (

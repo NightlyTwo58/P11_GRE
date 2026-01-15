@@ -5,12 +5,16 @@ import Home from './pages/Home'
 import Practice from './pages/Practice'
 import Results from './pages/Results'
 import VocabPractice from './pages/Vocab_Practice'
+import QuestionBank from './pages/Question_Bank'
 
 function App() {
-    const [score, setScore] = useState ({
-        correct: 0,
-        incorrect: 0
-    })
+  const [score, setScore] = useState ({
+      correct: 0,
+      incorrect: 0
+  })
+
+  const [questionBank, setQuestionBank] = useState([])
+
 
   return (
     <Routes>
@@ -18,13 +22,23 @@ function App() {
         path="/"
         element={<Home score={score} />}
       />
+
       <Route
         path="/practice"
-        element={<Practice />}
+        element={
+          <Practice
+            setQuestionBank={setQuestionBank}
+          />
+        }
       />
+
       <Route
         path="/vocab_practice"
-        element={<VocabPractice />}
+        element={
+          <VocabPractice
+            setQuestionBank={setQuestionBank}
+          />
+        }
       />
 
       <Route
@@ -33,6 +47,16 @@ function App() {
           <Results
             score={score}
             setScore={setScore}
+            setQuestionBank={setQuestionBank}
+          />
+        }
+      />
+
+      <Route
+        path="/question_bank"
+        element={
+          <QuestionBank
+            questionBank={questionBank}
           />
         }
       />
