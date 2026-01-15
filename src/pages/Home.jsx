@@ -27,7 +27,10 @@ function Home({ score, setScore }) {
       </p>
 
       <Link to="/practice">
-        <button>Start Practice</button>
+        <button>Start Reading Practice</button>
+      </Link>
+      <Link to="/vocab_practice">
+        <button>Start Vocab Practice</button>
       </Link>
 
       <button onClick={reset} disabled={total === 0}>Reset</button>

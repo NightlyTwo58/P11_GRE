@@ -50,7 +50,6 @@ function Practice() {
   const navigate = useNavigate()
 
   // GPT-generated content
-  const [passage, setPassage] = useState('')
   const [questions, setQuestions] = useState([])
 
   // UI state
@@ -84,7 +83,6 @@ function Practice() {
 // The JSON format MUST be:
 
 // {
-//   "passage": "string",
 //   "questions": [
 //     {
 //       "prompt": "string",
@@ -103,12 +101,12 @@ function Practice() {
 // Rules:
 // - Exactly 3 questions
 // - Some questions MUST have multiple correct answers
-// - Passage should be realistic GRE-level reading comprehension
+// - Passage should be realistic GRE-level vocabulary practice
 // `
 //           },
 //           {
 //             role: 'user',
-//             content: 'Generate a complete GRE verbal reasoning passage with 3 questions.'
+//             content: 'Generate a complete GRE verbal section vocabulary practice with 3 questions.'
 //           }
 //         ]
 //       })
@@ -119,7 +117,6 @@ function Practice() {
 
     const parsed = PLACEHOLDER_DATA
 
-    setPassage(parsed.passage)
     setQuestions(parsed.questions)
     setAnswers({})
     setCurrentIndex(0)
@@ -145,7 +142,6 @@ function Practice() {
   function submitAll() {
     navigate('/results', {
       state: {
-        passage,
         questions,
         answers
       }
@@ -162,53 +158,51 @@ function Practice() {
         {loading ? 'Generating...' : 'Generate Practice Set'}
       </button>
 
-      {passage && (
+      {questions.length > 0 && (
         <div className="split-container">
-          <div className="left-panel">
-            <h3>Passage</h3>
-            <p>{passage}</p>
-          </div>
-
-          <div className="right-panel">
-            <h3>Question {currentIndex + 1} of 3</h3>
-            <p>{currentQuestion.prompt}</p>
-
-            {currentQuestion.choices.map(choice => (
-              <label key={choice.id} className="choice">
-                <input
-                  type="checkbox"
-                  checked={(answers[currentIndex] || []).includes(choice.id)}
-                  onChange={() => toggleAnswer(choice.id)}
-                />
-                <strong>{choice.id}.</strong> {choice.text}
-              </label>
-            ))}
-
-            <div className="nav-buttons">
-              <button
-                onClick={() => setCurrentIndex(i => i - 1)}
-                disabled={currentIndex === 0}
-              >
-                ←
-              </button>
-
-              {currentIndex < 2 ? (
-                <button
-                  onClick={() => setCurrentIndex(i => i + 1)}
-                  disabled={!answers[currentIndex]?.length}
-                >
-                  →
-                </button>
-              ) : (
-                <button
-                  onClick={submitAll}
-                  disabled={!answers[currentIndex]?.length}
-                >
-                  Submit
-                </button>
-              )}
+            <div className="left-panel">
+                <h3>Question {currentIndex + 1} of 3</h3>
+                
+                <p>{currentQuestion.prompt}</p>
+                
             </div>
-          </div>
+            <div className="right-panel">
+                {currentQuestion.choices.map(choice => (
+                <label key={choice.id} className="choice">
+                    <input
+                    type="checkbox"
+                    checked={(answers[currentIndex] || []).includes(choice.id)}
+                    onChange={() => toggleAnswer(choice.id)}
+                    />
+                    <strong>{choice.id}.</strong> {choice.text}
+                </label>
+                ))}
+
+                <div className="nav-buttons">
+                    <button
+                        onClick={() => setCurrentIndex(i => i - 1)}
+                        disabled={currentIndex === 0}
+                    >
+                        ←
+                    </button>
+
+                    {currentIndex < 2 ? (
+                        <button
+                        onClick={() => setCurrentIndex(i => i + 1)}
+                        disabled={!answers[currentIndex]?.length}
+                        >
+                        →
+                        </button>
+                    ) : (
+                        <button
+                        onClick={submitAll}
+                        disabled={!answers[currentIndex]?.length}
+                        >
+                        Submit
+                        </button>
+                    )}
+                </div>
+            </div>
         </div>
       )}
     </div>
