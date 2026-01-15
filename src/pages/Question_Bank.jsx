@@ -10,6 +10,20 @@ function QuestionBank({ questionBank }) {
     return q.userAnswers.every(a => q.correctAnswers.includes(a))
   }
 
+  function exportQuestionBank() {
+    const dataStr = JSON.stringify(questionBank, null, 2) // pretty-print JSON
+    const blob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'questionBank.json'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="page">
       <h2>Question Bank</h2>
@@ -66,6 +80,14 @@ function QuestionBank({ questionBank }) {
       <Link to="/">
         <button>Main Menu</button>
       </Link>
+
+      <button
+        onClick={exportQuestionBank}
+        disabled={questionBank.length === 0} // disable if array is empty
+      >
+        Export Question Bank
+      </button>
+
     </div>
   )
 }
