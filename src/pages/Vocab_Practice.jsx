@@ -157,11 +157,11 @@ function Practice() {
       <button onClick={generateFromGPT} disabled={loading}>
         {loading ? 'Generating...' : 'Generate Practice Set'}
       </button>
-
+    
       {questions.length > 0 && (
         <div className="split-container">
             <div className="left-panel">
-                <h3>Question {currentIndex + 1} of 3</h3>
+                <h3>Question {currentIndex + 1} of {questions.length}</h3>
                 
                 <p>{currentQuestion.prompt}</p>
                 
