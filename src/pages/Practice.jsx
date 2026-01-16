@@ -74,6 +74,8 @@ function Practice({ questionBank }) {
   const { state } = useLocation()
   const numQuestions = state?.numQuestions || 3
 
+  // previous question states
+  const [isPreviousSelection, setIsPreviousSelection] = useState(false)
   const [showQuestionBank, setShowQuestionBank] = useState(false)
   const [selectedQuestions, setSelectedQuestions] = useState({})
 
@@ -183,7 +185,8 @@ function Practice({ questionBank }) {
       state: {
         passage,
         questions,
-        answers
+        answers,
+        isPreviousSelection 
       }
     })
   }
@@ -202,8 +205,10 @@ function Practice({ questionBank }) {
 
       {showQuestionBank && (
         <div className="modal">
-          <h3>Select Questions from Question Bank</h3>
-          {questionBank.map((item, index) => {
+          <h3>Select from Question Bank</h3>
+          {questionBank
+            .filter(item => item.passage)
+            .map((item, index) => {
             const id = item.id
             const answered = item.userAnswers?.length > 0
             const correct = answered
@@ -248,13 +253,14 @@ function Practice({ questionBank }) {
           <button
             onClick={() => {
               const newQuestions = questionBank.filter(q => selectedQuestions[q.id])
-              // Pick first passage from selected reading question (optional)
               const newPassage = newQuestions.find(q => q.passage)?.passage || ""
               setQuestions(newQuestions)
               setPassage(newPassage)
               setAnswers({})
               setCurrentIndex(0)
               setShowQuestionBank(false)
+              setIsPreviousSelection(true)
+              setSelectedQuestions({})
             }}
           >
             Load Selected Questions

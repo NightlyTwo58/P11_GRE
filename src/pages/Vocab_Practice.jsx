@@ -58,10 +58,23 @@ function generatePlaceholder(num) {
   return Array.from({ length: num }, () => ({ ...PLACEHOLDER_QUESTION }))
 }
 
-function Practice() {
+function arraysEqual(a, b) {
+  if (!a || !b) return false
+  if (a.length !== b.length) return false
+  const sortedA = [...a].sort()
+  const sortedB = [...b].sort()
+  return sortedA.every((v, i) => v === sortedB[i])
+}
+
+function Practice({ questionBank }) {
   const navigate = useNavigate()
   const { state } = useLocation()
   const numQuestions = state?.numQuestions || 3
+
+  // previous question states
+  const [isPreviousSelection, setIsPreviousSelection] = useState(false)
+  const [showQuestionBank, setShowQuestionBank] = useState(false)
+  const [selectedQuestions, setSelectedQuestions] = useState({})
 
   // GPT-generated content
   const [questions, setQuestions] = useState([])
@@ -70,6 +83,10 @@ function Practice() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
+
+  function getPreviousAnswer() {
+    setShowQuestionBank(true)
+  }
 
   async function generateFromGPT() {
     setLoading(true)
@@ -160,7 +177,8 @@ function Practice() {
     navigate('/results', {
       state: {
         questions,
-        answers
+        answers,
+        isPreviousSelection
       }
     })
   }
@@ -174,6 +192,73 @@ function Practice() {
       <button onClick={generateFromGPT} disabled={loading}>
         {loading ? 'Generating...' : 'Generate Practice Set'}
       </button>
+
+      <button onClick={getPreviousAnswer} disabled={loading}>{'Previous Questions'}</button>
+      
+      {showQuestionBank && (
+        <div className="modal">
+          <h3>Select from Question Bank</h3>
+          {questionBank
+            .filter(item => !item.passage)
+            .map((item, index) => {
+            const id = item.id
+            const answered = item.userAnswers?.length > 0
+            const correct = answered
+              ? arraysEqual(item.userAnswers, item.correctAnswers)
+              : null
+
+            return (
+              <label
+                key={id}
+                style={{
+                  display: "block",
+                  backgroundColor:
+                    correct === true
+                      ? "lightgreen"
+                      : correct === false
+                      ? "salmon"
+                      : "transparent",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  margin: "2px 0"
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedQuestions[id] || false}
+                  onChange={() =>
+                    setSelectedQuestions(prev => ({
+                      ...prev,
+                      [id]: !prev[id]
+                    }))
+                  }
+                />
+                <strong>
+                  {new Date(item.timestamp).toLocaleDateString()} -{" "}
+                  {item.type === "reading" ? "Reading" : "Vocab"}:
+                </strong>{" "}
+                {item.prompt}
+              </label>
+            )
+          })}
+
+          <button
+            onClick={() => {
+              const newQuestions = questionBank.filter(q => selectedQuestions[q.id])
+              setQuestions(newQuestions)
+              setAnswers({})
+              setCurrentIndex(0)
+              setShowQuestionBank(false)
+              setIsPreviousSelection(true)
+              setSelectedQuestions({})
+            }}
+          >
+            Load Selected Questions
+          </button>
+
+          <button onClick={() => setShowQuestionBank(false)}>Cancel</button>
+        </div>
+      )}
 
       {questions.length > 0 && (
         <div className="split-container">

@@ -5,7 +5,7 @@ function Results({ score, setScore, questionBank, setQuestionBank }) {
   const { state } = useLocation()
   const navigate = useNavigate()
 
-  const { passage, questions, answers } = state
+  const { passage, questions, answers, isPreviousSelection } = state
 
   const [currentExplanation, setCurrentExplanation] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,34 +17,37 @@ function Results({ score, setScore, questionBank, setQuestionBank }) {
   }
 
   function finalize() {
-    let correctCount = 0
-    let incorrectCount = 0
+    if (!isPreviousSelection) {
+      let correctCount = 0
+      let incorrectCount = 0
 
-    questions.forEach((q, i) => {
-      if (isCorrect(answers[i], q.correctAnswers)) {
-        correctCount++
-      } else {
-        incorrectCount++
-      }
-    })
+      questions.forEach((q, i) => {
+        if (isCorrect(answers[i], q.correctAnswers)) {
+          correctCount++
+        } else {
+          incorrectCount++
+        }
+      })
 
-    setScore({
-      correct: score.correct + correctCount,
-      incorrect: score.incorrect + incorrectCount
-    })
+      setScore({
+        correct: score.correct + correctCount,
+        incorrect: score.incorrect + incorrectCount
+      })
 
-    const enrichedQuestions = questions.map((q, i) => ({
-      id: crypto.randomUUID(),
-      type: passage ? 'reading' : 'vocab',
-      passage: passage || null,
-      prompt: q.prompt,
-      choices: q.choices,
-      correctAnswers: q.correctAnswers,
-      userAnswers: answers[i] || [],
-      explanations: q.explanations || {},
-      timestamp: Date.now()
-    }))
-    setQuestionBank(prev => [...prev, ...enrichedQuestions])
+      const enrichedQuestions = questions.map((q, i) => ({
+        id: crypto.randomUUID(),
+        type: passage ? 'reading' : 'vocab',
+        passage: passage || null,
+        prompt: q.prompt,
+        choices: q.choices,
+        correctAnswers: q.correctAnswers,
+        userAnswers: answers[i] || [],
+        explanations: q.explanations || {},
+        timestamp: Date.now()
+      }))
+      
+      setQuestionBank(prev => [...prev, ...enrichedQuestions])
+    }
 
     navigate('/')
   }
