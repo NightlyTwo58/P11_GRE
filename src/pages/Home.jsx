@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
 function reset() {
     score.correct = 0
@@ -7,7 +8,7 @@ function reset() {
 }
 
 function Home({ score, setScore }) {
-
+  const [numQuestions, setNumQuestions] = useState(3) // default 3
   const total = score.correct + score.incorrect
   const accuracy = total === 0 ? 0 : Math.round((score.correct / total) * 100)
 
@@ -26,11 +27,25 @@ function Home({ score, setScore }) {
         Accuracy: {accuracy}% <br />
       </p>
 
-      <Link to="/practice">
+      <p>
+        Number of questions:
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={numQuestions}
+          onChange={e => setNumQuestions(parseInt(e.target.value))}
+        />
+      </p>
+
+      <Link to="/practice" state={{ numQuestions }}>
         <button>Start Reading Practice</button>
       </Link>
-      <Link to="/vocab_practice">
+      <Link to="/vocab_practice" state={{ numQuestions }}>
         <button>Start Vocab Practice</button>
+      </Link>
+      <Link to="/question_bank">
+        <button>Review Previous Questions</button>
       </Link>
 
       <button onClick={reset} disabled={total === 0}>Reset</button>

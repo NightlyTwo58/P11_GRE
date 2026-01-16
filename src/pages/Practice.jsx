@@ -1,53 +1,83 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 
-const PLACEHOLDER_DATA = {
-  passage:
-    'Researchers have long debated whether cognitive ability is primarily shaped by genetic inheritance or environmental influence. While early studies emphasized hereditary factors, more recent work suggests that socioeconomic conditions, education quality, and early childhood experiences play a substantial role in shaping intellectual development.',
-
-  questions: [
-    {
-      prompt:
-        'The passage primarily argues that cognitive ability is influenced by which of the following?',
-      choices: [
-        { id: 'A', text: 'Genetic inheritance alone' },
-        { id: 'B', text: 'Environmental factors alone' },
-        { id: 'C', text: 'A combination of genetic and environmental factors' },
-        { id: 'D', text: 'Random variation unrelated to upbringing' },
-        { id: 'E', text: 'Formal education as the sole determinant' }
-      ],
-      correctAnswers: ['C']
-    },
-    {
-      prompt:
-        'Which of the following would most strengthen the passage’s argument?',
-      choices: [
-        { id: 'A', text: 'Evidence that intelligence tests are unreliable' },
-        { id: 'B', text: 'A study showing identical twins raised apart differ in IQ' },
-        { id: 'C', text: 'Historical accounts of educational reform' },
-        { id: 'D', text: 'Criticism of early genetic research methods' },
-        { id: 'E', text: 'Data showing IQ scores remain constant over time' }
-      ],
-      correctAnswers: ['B']
-    },
-    {
-      prompt:
-        'The author would most likely agree with which of the following statements?',
-      choices: [
-        { id: 'A', text: 'Genetics fully determine intellectual potential' },
-        { id: 'B', text: 'Environmental factors have no measurable impact' },
-        { id: 'C', text: 'Early childhood experiences can influence cognitive outcomes' },
-        { id: 'D', text: 'Education quality is irrelevant to intelligence' },
-        { id: 'E', text: 'Cognitive ability cannot be studied empirically' }
-      ],
-      correctAnswers: ['C']
-    }
-  ]
+const PLACEHOLDER_QUESTION = {
+  prompt: 'Sample GRE-style question?',
+  choices: [
+    { id: 'A', text: 'Option A' },
+    { id: 'B', text: 'Option B' },
+    { id: 'C', text: 'Option C' },
+    { id: 'D', text: 'Option D' },
+    { id: 'E', text: 'Option E' }
+  ],
+  correctAnswers: ['A']
 }
 
+// const PLACEHOLDER_DATA = {
+//   passage:
+//     'Researchers have long debated whether cognitive ability is primarily shaped by genetic inheritance or environmental influence. While early studies emphasized hereditary factors, more recent work suggests that socioeconomic conditions, education quality, and early childhood experiences play a substantial role in shaping intellectual development.',
 
-function Practice() {
+//   questions: [
+//     {
+//       prompt:
+//         'The passage primarily argues that cognitive ability is influenced by which of the following?',
+//       choices: [
+//         { id: 'A', text: 'Genetic inheritance alone' },
+//         { id: 'B', text: 'Environmental factors alone' },
+//         { id: 'C', text: 'A combination of genetic and environmental factors' },
+//         { id: 'D', text: 'Random variation unrelated to upbringing' },
+//         { id: 'E', text: 'Formal education as the sole determinant' }
+//       ],
+//       correctAnswers: ['C']
+//     },
+//     {
+//       prompt:
+//         'Which of the following would most strengthen the passage’s argument?',
+//       choices: [
+//         { id: 'A', text: 'Evidence that intelligence tests are unreliable' },
+//         { id: 'B', text: 'A study showing identical twins raised apart differ in IQ' },
+//         { id: 'C', text: 'Historical accounts of educational reform' },
+//         { id: 'D', text: 'Criticism of early genetic research methods' },
+//         { id: 'E', text: 'Data showing IQ scores remain constant over time' }
+//       ],
+//       correctAnswers: ['B']
+//     },
+//     {
+//       prompt:
+//         'The author would most likely agree with which of the following statements?',
+//       choices: [
+//         { id: 'A', text: 'Genetics fully determine intellectual potential' },
+//         { id: 'B', text: 'Environmental factors have no measurable impact' },
+//         { id: 'C', text: 'Early childhood experiences can influence cognitive outcomes' },
+//         { id: 'D', text: 'Education quality is irrelevant to intelligence' },
+//         { id: 'E', text: 'Cognitive ability cannot be studied empirically' }
+//       ],
+//       correctAnswers: ['C']
+//     }
+//   ]
+// }
+
+function arraysEqual(a, b) {
+  if (!a || !b) return false
+  if (a.length !== b.length) return false
+  const sortedA = [...a].sort()
+  const sortedB = [...b].sort()
+  return sortedA.every((v, i) => v === sortedB[i])
+}
+
+function generatePlaceholder(num) {
+  return Array.from({ length: num }, () => ({ ...PLACEHOLDER_QUESTION }))
+}
+
+function Practice({ questionBank }) {
   const navigate = useNavigate()
+  const { state } = useLocation()
+  const numQuestions = state?.numQuestions || 3
+
+  // previous question states
+  const [isPreviousSelection, setIsPreviousSelection] = useState(false)
+  const [showQuestionBank, setShowQuestionBank] = useState(false)
+  const [selectedQuestions, setSelectedQuestions] = useState({})
 
   // GPT-generated content
   const [passage, setPassage] = useState('')
@@ -57,6 +87,10 @@ function Practice() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
+
+  function getPreviousAnswer() {
+    setShowQuestionBank(true)
+  }
 
   async function generateFromGPT() {
     setLoading(true)
@@ -101,14 +135,14 @@ function Practice() {
 // }
 
 // Rules:
-// - Exactly 3 questions
+// - Exactly ${numQuestions} questions
 // - Some questions MUST have multiple correct answers
 // - Passage should be realistic GRE-level reading comprehension
 // `
 //           },
 //           {
 //             role: 'user',
-//             content: 'Generate a complete GRE verbal reasoning passage with 3 questions.'
+//             content: 'Generate a complete GRE verbal reasoning passage with ${numQuestions} questions.'
 //           }
 //         ]
 //       })
@@ -117,7 +151,11 @@ function Practice() {
 //     const data = await response.json()
 //     const parsed = JSON.parse(data.choices[0].message.content)
 
-    const parsed = PLACEHOLDER_DATA
+    const parsed = {
+      passage: 'This is a placeholder passage for GRE practice.',
+      questions: generatePlaceholder(numQuestions)
+    }
+    // const parsed = PLACEHOLDER_DATA
 
     setPassage(parsed.passage)
     setQuestions(parsed.questions)
@@ -147,7 +185,8 @@ function Practice() {
       state: {
         passage,
         questions,
-        answers
+        answers,
+        isPreviousSelection 
       }
     })
   }
@@ -162,6 +201,75 @@ function Practice() {
         {loading ? 'Generating...' : 'Generate Practice Set'}
       </button>
 
+      <button onClick={getPreviousAnswer} disabled={loading}>{'Previous Questions'}</button>
+
+      {showQuestionBank && (
+        <div className="modal">
+          <h3>Select from Question Bank</h3>
+          {questionBank
+            .filter(item => item.passage)
+            .map((item, index) => {
+            const id = item.id
+            const answered = item.userAnswers?.length > 0
+            const correct = answered
+              ? arraysEqual(item.userAnswers, item.correctAnswers)
+              : null
+
+            return (
+              <label
+                key={id}
+                style={{
+                  display: "block",
+                  backgroundColor:
+                    correct === true
+                      ? "lightgreen"
+                      : correct === false
+                      ? "salmon"
+                      : "transparent",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  margin: "2px 0"
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedQuestions[id] || false}
+                  onChange={() =>
+                    setSelectedQuestions(prev => ({
+                      ...prev,
+                      [id]: !prev[id]
+                    }))
+                  }
+                />
+                <strong>
+                  {new Date(item.timestamp).toLocaleDateString()} -{" "}
+                  {item.type === "reading" ? "Reading" : "Vocab"}:
+                </strong>{" "}
+                {item.prompt}
+              </label>
+            )
+          })}
+
+          <button
+            onClick={() => {
+              const newQuestions = questionBank.filter(q => selectedQuestions[q.id])
+              const newPassage = newQuestions.find(q => q.passage)?.passage || ""
+              setQuestions(newQuestions)
+              setPassage(newPassage)
+              setAnswers({})
+              setCurrentIndex(0)
+              setShowQuestionBank(false)
+              setIsPreviousSelection(true)
+              setSelectedQuestions({})
+            }}
+          >
+            Load Selected Questions
+          </button>
+
+          <button onClick={() => setShowQuestionBank(false)}>Cancel</button>
+        </div>
+      )}
+
       {passage && (
         <div className="split-container">
           <div className="left-panel">
@@ -170,7 +278,7 @@ function Practice() {
           </div>
 
           <div className="right-panel">
-            <h3>Question {currentIndex + 1} of 3</h3>
+            <h3>Question {currentIndex + 1} of {questions.length}</h3>
             <p>{currentQuestion.prompt}</p>
 
             {currentQuestion.choices.map(choice => (
@@ -192,7 +300,7 @@ function Practice() {
                 ←
               </button>
 
-              {currentIndex < 2 ? (
+              {currentIndex < questions.length - 1 ? (
                 <button
                   onClick={() => setCurrentIndex(i => i + 1)}
                   disabled={!answers[currentIndex]?.length}
