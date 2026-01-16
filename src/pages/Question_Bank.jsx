@@ -83,7 +83,7 @@ function QuestionBank({ questionBank }) {
 
       <button
         onClick={exportQuestionBank}
-        disabled={questionBank.length === 0} // disable if array is empty
+        disabled={questionBank.length === 0}
       >
         Export Question Bank
       </button>

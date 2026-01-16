@@ -57,14 +57,25 @@ const PLACEHOLDER_QUESTION = {
 //   ]
 // }
 
+function arraysEqual(a, b) {
+  if (!a || !b) return false
+  if (a.length !== b.length) return false
+  const sortedA = [...a].sort()
+  const sortedB = [...b].sort()
+  return sortedA.every((v, i) => v === sortedB[i])
+}
+
 function generatePlaceholder(num) {
   return Array.from({ length: num }, () => ({ ...PLACEHOLDER_QUESTION }))
 }
 
-function Practice() {
+function Practice({ questionBank }) {
   const navigate = useNavigate()
   const { state } = useLocation()
   const numQuestions = state?.numQuestions || 3
+
+  const [showQuestionBank, setShowQuestionBank] = useState(false)
+  const [selectedQuestions, setSelectedQuestions] = useState({})
 
   // GPT-generated content
   const [passage, setPassage] = useState('')
@@ -74,6 +85,10 @@ function Practice() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
+
+  function getPreviousAnswer() {
+    setShowQuestionBank(true)
+  }
 
   async function generateFromGPT() {
     setLoading(true)
@@ -182,6 +197,72 @@ function Practice() {
       <button onClick={generateFromGPT} disabled={loading}>
         {loading ? 'Generating...' : 'Generate Practice Set'}
       </button>
+
+      <button onClick={getPreviousAnswer} disabled={loading}>{'Previous Questions'}</button>
+
+      {showQuestionBank && (
+        <div className="modal">
+          <h3>Select Questions from Question Bank</h3>
+          {questionBank.map((item, index) => {
+            const id = item.id
+            const answered = item.userAnswers?.length > 0
+            const correct = answered
+              ? arraysEqual(item.userAnswers, item.correctAnswers)
+              : null
+
+            return (
+              <label
+                key={id}
+                style={{
+                  display: "block",
+                  backgroundColor:
+                    correct === true
+                      ? "lightgreen"
+                      : correct === false
+                      ? "salmon"
+                      : "transparent",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  margin: "2px 0"
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedQuestions[id] || false}
+                  onChange={() =>
+                    setSelectedQuestions(prev => ({
+                      ...prev,
+                      [id]: !prev[id]
+                    }))
+                  }
+                />
+                <strong>
+                  {new Date(item.timestamp).toLocaleDateString()} -{" "}
+                  {item.type === "reading" ? "Reading" : "Vocab"}:
+                </strong>{" "}
+                {item.prompt}
+              </label>
+            )
+          })}
+
+          <button
+            onClick={() => {
+              const newQuestions = questionBank.filter(q => selectedQuestions[q.id])
+              // Pick first passage from selected reading question (optional)
+              const newPassage = newQuestions.find(q => q.passage)?.passage || ""
+              setQuestions(newQuestions)
+              setPassage(newPassage)
+              setAnswers({})
+              setCurrentIndex(0)
+              setShowQuestionBank(false)
+            }}
+          >
+            Load Selected Questions
+          </button>
+
+          <button onClick={() => setShowQuestionBank(false)}>Cancel</button>
+        </div>
+      )}
 
       {passage && (
         <div className="split-container">

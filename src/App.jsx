@@ -27,6 +27,7 @@ function App() {
         path="/practice"
         element={
           <Practice
+            questionBank={questionBank}
             setQuestionBank={setQuestionBank}
           />
         }
@@ -36,6 +37,7 @@ function App() {
         path="/vocab_practice"
         element={
           <VocabPractice
+            questionBank={questionBank}
             setQuestionBank={setQuestionBank}
           />
         }
